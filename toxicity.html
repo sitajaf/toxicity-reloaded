@@ -16,10 +16,10 @@
 		</script>
 		<script>
 		function load(selEvent) {
-			var reader = new FileReader();
+			const reader = new FileReader();
 			reader.onload = function(loadEvent) {
-				var xmldoc = $.parseXML(loadEvent.target.result)
-				toxicity.draw(toxicity.calc(xmldoc))		
+				const jsonDoc = $.parseJSON(loadEvent.target.result)
+				toxicity.draw(toxicity.calc(jsonDoc))
 			}
 			reader.readAsText(selEvent.target.files[0]); 
 		};

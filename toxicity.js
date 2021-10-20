@@ -2,52 +2,52 @@
 toxicity = {}
 
 toxicity.checknames = [
-	"BooleanExpressionComplexity", 
-	"ClassDataAbstractionCoupling", 
-	"ClassFanOutComplexity",
-	"CyclomaticComplexity",
-	"FileLength",
-	"MethodLength",
-	"NestedIfDepth",
-	"AnonInnerLength",
-	"ParameterNumber",
-	"MissingSwitchDefault"
+	"nbMethods",
+	"ccnMethodMax",
+	"efferentCoupling",
+	"lcom",
+	"lloc"
 ];
 
 toxicity.colors = [
+	"#6D5A8D",
 	"#989BFA",
 	"#9C4B45",
 	"#8EA252",
-	"#6D5A8D",
 	"#5396AC",
-	"#CE8743",
-	"#96A9CD",
-	"#C79593",
-	"#BCCA98",
-	"#E9C197"
+	"#CE8743"
 ];
 
-toxicity.calc = function(xmldoc) {
-	var filenodes = $(xmldoc).find("file");
-	return $.map(filenodes, toxicity.calcfile);
+toxicity.thresholds = {
+	nbMethods: 30,
+	ccnMethodMax: 10,
+	efferentCoupling: 30,
+	lcom: 1,
+	lloc: 500
 }
 
-toxicity.calcfile = function(fnode, fidx) {
-		var path = $(fnode).attr("name").replace(/\\/g, "/");
-		var result = {
-			_name: path.split("/").slice(-1)[0], 
-			_path: path,
+toxicity.calc = function (jsonDoc) {
+    const fileNames = Object.keys(jsonDoc);
+
+	return fileNames.map((filename, index) => {
+		const metricObject = jsonDoc[filename]
+
+		const result = {
+			_name: metricObject.name.split('\\').slice(-1)[0],
+			_path: metricObject.name,
 			total: 0
-		};
-		$(fnode).children().each(function(eidx, enode) {
-			var check = $(enode).attr("source").split(".").slice(-1)[0].replace(/Check$/, "")
-			var matches = $(enode).attr("message").replace(/,/g, "").match(/(\d+)/g)
-			var score = (matches && matches.length > 1) ? (matches[0] / matches [1]) : 1;
-			result[check] = (result[check] || 0) + score
+		}
+
+		toxicity.checknames.forEach((checkname) => {
+			const metric = orZero(metricObject[checkname]);
+			const score = metric / toxicity.thresholds[checkname];
+			result[checkname] = score;
 			result.total += score;
 		});
-		return result.total ? result : null;
-};
+
+		return result;
+	});
+}
 
 toxicity.draw = function(scores) {
 	var CHEIGHT = 425;
@@ -82,7 +82,7 @@ toxicity.draw = function(scores) {
 		.scale(yscale)
 		.orient("left")
 		.ticks(10);
-		
+
 	var fscale = d3.scale.ordinal().range(toxicity.colors);
 
 	chart.selectAll("line")
@@ -109,7 +109,7 @@ toxicity.draw = function(scores) {
 		.attr("height", function(d) { return CHEIGHT - yscale(d.y); })
 		.attr("width", function(d) { return BWIDTH; })
 		.call(tooltip(function(d) { return d.score; }));
-					
+
 	chart.append("g")
 		.attr("class", "axis")
 		.attr("transform", "translate(" + LEFTSPACE + ", 0)")
@@ -158,11 +158,11 @@ tooltip = function(a) {
 				if (hclip > 0) {
 					ttx -= hclip
 				}
-				div.style("left", Math.max(ttx + 4, $(window).scrollLeft() + 5) + "px")     
+				div.style("left", Math.max(ttx + 4, $(window).scrollLeft() + 5) + "px")
 					 .style("top", Math.max(tty, $(window).scrollTop() + 5) + "px");
 				div.transition().duration(100).style("opacity", 0.95);
 			})
-			.on("mouseout", function(d) {       
+			.on("mouseout", function(d) {
 				div = d3.select("body").select("div.tooltip")
 				div.transition().duration(250).style("opacity", 0);
 			});
