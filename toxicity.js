@@ -39,7 +39,7 @@ toxicity.calc = function (jsonDoc) {
 		}
 
 		toxicity.checknames.forEach((checkname) => {
-			const metric = orZero(metricObject[checkname]);
+			const metric = metricObject[checkname] || 0;
 			const score = metric / toxicity.thresholds[checkname];
 			result[checkname] = score;
 			result.total += score;
