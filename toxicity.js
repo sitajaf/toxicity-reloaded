@@ -11,7 +11,6 @@ toxicity.checknames = [
 
 toxicity.colors = [
 	"#6D5A8D",
-	"#989BFA",
 	"#9C4B45",
 	"#8EA252",
 	"#5396AC",
